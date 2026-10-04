@@ -1,0 +1,4 @@
+target/
+# The builder image tag already pins the toolchain; this file would only make
+# rustup download rustfmt and clippy on every build.
+rust-toolchain.toml

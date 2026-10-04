@@ -1,0 +1,505 @@
+@import 'tailwindcss';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/800.css';
+@import '@fontsource/poppins/900.css';
+
+/* Without this, daisyUI's built-in dark theme takes over whenever the OS prefers dark mode. */
+@plugin 'daisyui' {
+	themes: false;
+}
+
+/* Tokens from WePush's landing page (wepush.com). Its greys are Tailwind's neutral palette. */
+@plugin 'daisyui/theme' {
+	name: 'wepush';
+	default: true;
+	prefersdark: false;
+	color-scheme: light;
+
+	--color-base-100: #ffffff;
+	--color-base-200: #f5f5f5;
+	--color-base-300: #e5e5e5;
+	--color-base-content: #000000;
+	--color-primary: #fe3842;
+	--color-primary-content: #ffffff;
+	/* The landing page has a single hue; its near-black and cyan fill the remaining roles. */
+	--color-secondary: #171717;
+	--color-secondary-content: #ffffff;
+	--color-accent: #4dffff;
+	--color-accent-content: #000000;
+	--color-neutral: #000000;
+	--color-neutral-content: #ffffff;
+	/* Status colours are not on the landing page; these are the ones WePush's app uses. */
+	--color-info: #0b72b9;
+	--color-info-content: #ffffff;
+	--color-success: #21a179;
+	--color-success-content: #ffffff;
+	--color-warning: #f0c242;
+	--color-warning-content: #000000;
+	--color-error: #c92a2a;
+	--color-error-content: #ffffff;
+
+	--radius-selector: 1rem;
+	--radius-field: 0.75rem;
+	--radius-box: 2rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.275rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+}
+
+/* Kept out of the daisyUI block: Tailwind splits comma-separated plugin values into lists. */
+@theme {
+	--font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--shadow-glass:
+		0 8px 32px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.04),
+		inset 0 1px 1px rgb(255 255 255 / 0.8);
+	--shadow-lift: 0 30px 80px rgb(0 0 0 / 0.08);
+	/* Darker shades for text on a pale tint of the same colour, where the base shade fails AA. */
+	--color-primary-strong: #c81e28;
+	--color-success-strong: #15765a;
+	--color-warning-strong: #8a5300;
+}
+
+@layer base {
+	/* daisyUI paints the page from this variable: the landing page's warm off-white. */
+	:root {
+		--root-bg: #faf9f8;
+	}
+
+	body {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Tailwind 4 gives buttons the default cursor; everything clickable shows the pointer here. */
+	button:not(:disabled),
+	[role='button']:not([aria-disabled='true']),
+	summary,
+	select:not(:disabled),
+	label:has(> input:is([type='checkbox'], [type='radio']):not(:disabled)) {
+		cursor: pointer;
+	}
+
+	/* One focus ring everywhere. Fields and slider handles draw their own (see below). */
+	:focus-visible {
+		outline: 2px solid var(--color-base-content);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			animation-duration: 1ms !important;
+			animation-delay: 0s !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 1ms !important;
+		}
+	}
+}
+
+@keyframes rise {
+	from {
+		opacity: 0;
+		translate: 0 0.75rem;
+	}
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+/* The landing page's section tag, and the only uppercase text. */
+@utility tag {
+	@apply inline-flex items-center rounded-full bg-neutral-100 px-3.5 py-1.5 text-xs font-bold tracking-[1px] text-primary uppercase;
+}
+
+/* Entrance. A page staggers its blocks with `--i`, capped at 4 steps. */
+@utility animate-rise {
+	animation: rise 0.5s var(--ease-out-expo) both;
+	animation-delay: calc(min(var(--i, 0), 4) * 60ms);
+}
+
+/* The one width every page and the header share, so their edges line up. */
+@utility container-app {
+	@apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+
+/* Type scale. The home hero is the only heading heavier than these. */
+@utility title-page {
+	@apply text-3xl leading-tight font-extrabold tracking-[-0.02em] text-balance break-words sm:text-4xl;
+}
+
+@utility title-section {
+	@apply text-xl leading-snug font-extrabold tracking-[-0.02em] sm:text-2xl;
+}
+
+@utility title-card {
+	@apply text-lg leading-snug font-bold tracking-tight break-words;
+}
+
+@utility lede {
+	@apply max-w-2xl text-pretty text-neutral-600;
+}
+
+@utility kpi {
+	@apply text-3xl leading-none font-black tracking-[-0.03em] tabular-nums;
+}
+
+/* Surfaces. The radius steps down as boxes nest: panel 32px, surface 24px, nested box 16px. */
+@utility panel {
+	@apply rounded-box border border-base-300 bg-base-100 p-6 sm:p-10;
+}
+
+@utility surface {
+	@apply rounded-3xl border border-base-300 bg-base-100 p-6;
+}
+
+/* Only for cards that are links or open something: they rise on hover and keyboard focus. */
+@utility lift {
+	@apply transition-[translate,box-shadow,border-color] duration-500 ease-out-expo hover:-translate-y-1 hover:border-neutral-400 hover:shadow-lift focus-visible:-translate-y-1 focus-visible:border-neutral-400 focus-visible:shadow-lift;
+}
+
+@utility empty-state {
+	@apply rounded-box border border-base-300 bg-base-100 px-6 py-14 text-center;
+}
+
+/* An empty state inside a panel: a grey tile, since a bordered box would nest in a bordered box. */
+@utility empty-state-inset {
+	@apply rounded-2xl bg-neutral-50 px-6 py-10 text-center;
+}
+
+/* Status and metadata pills; the caller adds the colours. */
+@utility pill {
+	@apply inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold whitespace-nowrap;
+}
+
+/* A pickable option: a label around an sr-only checkbox or radio, or an aria-pressed button. */
+@utility chip {
+	@apply inline-flex cursor-pointer items-center rounded-full border border-base-300 bg-base-100 px-3.5 py-1.5 text-sm font-medium text-neutral-700 transition-[background-color,border-color,color,scale] duration-300 ease-out-expo select-none hover:not-has-aria-disabled:border-black active:not-has-aria-disabled:scale-95 has-checked:border-black has-checked:bg-black has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-black has-aria-disabled:cursor-not-allowed aria-pressed:border-black aria-pressed:bg-black aria-pressed:text-white;
+}
+
+/* CheckIcon in a `group` chip. It grows from zero width, so the chip widens smoothly. */
+@utility chip-tick {
+	@apply h-3.5 w-0 opacity-0 transition-[width,margin,opacity] duration-300 ease-out-expo group-has-checked:mr-1.5 group-has-checked:w-3.5 group-has-checked:opacity-100;
+}
+
+@utility nav-link {
+	@apply inline-flex h-10 items-center rounded-full px-3 text-sm font-medium whitespace-nowrap text-neutral-600 transition-colors duration-300 ease-out-expo hover:bg-black/5 hover:text-black aria-[current=page]:bg-black/5 aria-[current=page]:text-black sm:px-5 sm:text-[15px];
+}
+
+/* A modal <dialog>: the card rises while the backdrop fades in. A bottom sheet on phones. */
+@utility dialog-card {
+	@apply m-auto w-[min(32rem,calc(100%-2rem))] rounded-box border border-white/60 bg-base-100 p-0 shadow-lift backdrop:bg-black/25 backdrop:backdrop-blur-sm max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-b-none;
+
+	&[open] {
+		animation: rise 0.5s var(--ease-out-expo);
+	}
+
+	&[open]::backdrop {
+		animation: fade-in 0.3s var(--ease-out-expo);
+	}
+}
+
+/* A modal <dialog> that slides in: a drawer on the right, or a bottom sheet on phones. */
+@utility sheet {
+	inset: auto 0 0;
+	width: 100%;
+	max-width: none;
+	height: auto;
+	max-height: 90dvh;
+	margin: 0;
+	overflow: hidden;
+	border-radius: var(--radius-box) var(--radius-box) 0 0;
+	translate: 0 100%;
+	transition:
+		translate 0.5s var(--ease-out-expo),
+		display 0.5s allow-discrete,
+		overlay 0.5s allow-discrete;
+
+	&[open] {
+		translate: 0 0;
+
+		@starting-style {
+			translate: 0 100%;
+		}
+	}
+
+	@media (width >= 40rem) {
+		inset: 0.75rem 0.75rem 0.75rem auto;
+		width: 28rem;
+		max-height: none;
+		border-radius: var(--radius-box);
+		translate: calc(100% + 0.75rem) 0;
+
+		&[open] {
+			@starting-style {
+				translate: calc(100% + 0.75rem) 0;
+			}
+		}
+	}
+
+	&::backdrop {
+		background: rgb(0 0 0 / 0.25);
+		backdrop-filter: blur(4px);
+		opacity: 0;
+		transition:
+			opacity 0.3s ease,
+			display 0.3s allow-discrete,
+			overlay 0.3s allow-discrete;
+	}
+
+	&[open]::backdrop {
+		opacity: 1;
+
+		@starting-style {
+			opacity: 0;
+		}
+	}
+}
+
+/* A range input over a track the component draws; the input is the taller hit area. */
+@utility slider {
+	--slider-height: 2rem;
+	--slider-thumb: 1.25rem;
+	height: var(--slider-height);
+	margin: 0;
+	appearance: none;
+	background: none;
+	cursor: pointer;
+
+	/* Easier to grab with a finger. */
+	@media (pointer: coarse) {
+		--slider-thumb: 1.5rem;
+	}
+
+	/* The handle shows focus instead. */
+	&:focus-visible {
+		outline: none;
+	}
+
+	&::-webkit-slider-runnable-track {
+		height: 100%;
+		background: none;
+	}
+
+	&::-moz-range-track {
+		background: none;
+	}
+
+	/* WebKit and Gecko need separate rules: a selector list with the other's pseudo-element is dropped. */
+	&::-webkit-slider-thumb {
+		box-sizing: border-box;
+		width: var(--slider-thumb);
+		height: var(--slider-thumb);
+		/* WebKit puts the handle at the top of the track; this centres it. */
+		margin-top: calc((var(--slider-height) - var(--slider-thumb)) / 2);
+		appearance: none;
+		border: 3px solid var(--color-base-100);
+		border-radius: 9999px;
+		background: var(--color-primary);
+		box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+		cursor: grab;
+		transition: scale 0.3s var(--ease-out-expo);
+	}
+
+	&::-moz-range-thumb {
+		box-sizing: border-box;
+		width: var(--slider-thumb);
+		height: var(--slider-thumb);
+		border: 3px solid var(--color-base-100);
+		border-radius: 9999px;
+		background: var(--color-primary);
+		box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+		cursor: grab;
+		transition: scale 0.3s var(--ease-out-expo);
+	}
+
+	&:active::-webkit-slider-thumb {
+		cursor: grabbing;
+		scale: 1.15;
+	}
+
+	&:active::-moz-range-thumb {
+		cursor: grabbing;
+		scale: 1.15;
+	}
+
+	&:focus-visible::-webkit-slider-thumb {
+		outline: 2px solid var(--color-base-content);
+		outline-offset: 2px;
+	}
+
+	&:focus-visible::-moz-range-thumb {
+		outline: 2px solid var(--color-base-content);
+		outline-offset: 2px;
+	}
+}
+
+/* daisyUI nests its components in layers inside `utilities`, so rules placed directly here win. */
+@layer utilities {
+	/* Holds btn-neutral's sweep. Without specificity, so a positioning utility (`absolute`) wins. */
+	:where(.btn) {
+		position: relative;
+	}
+
+	.btn {
+		/* Pills, whatever radius inputs use. */
+		--radius-field: 100px;
+		transition:
+			translate 0.5s var(--ease-out-expo),
+			box-shadow 0.5s var(--ease-out-expo),
+			background-color 0.3s ease,
+			border-color 0.3s ease,
+			color 0.3s ease;
+	}
+
+	.btn:not(.btn-xs, .btn-sm, .btn-lg, .btn-xl) {
+		--btn-p: 1.5rem;
+		--fontsize: 0.9375rem;
+	}
+
+	/* Default: white with a hairline border that turns black on hover. */
+	.btn:where(:not(.btn-outline, .btn-dash, .btn-ghost, .btn-soft, .btn-link)) {
+		--btn-bg: var(--btn-color, var(--color-base-100));
+		--btn-border: var(--btn-color, var(--color-base-300));
+
+		@media (hover: hover) {
+			&:hover:not(:disabled, .btn-disabled, [aria-disabled='true']) {
+				--btn-bg: var(--btn-color, #fafafa);
+				--btn-border: var(--btn-color, var(--color-base-content));
+			}
+		}
+	}
+
+	/* Main call to action: red sweeps up on hover. Borderless, so no ring shows around the sweep. */
+	.btn-neutral {
+		border-width: 0;
+		isolation: isolate;
+		overflow: hidden;
+
+		&::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			z-index: -1;
+			background: var(--color-primary);
+			/* A pixel past the bottom, so no sliver shows on a button of fractional height. */
+			translate: 0 calc(100% + 1px);
+			transition: translate 0.5s var(--ease-out-expo);
+		}
+
+		@media (hover: hover) {
+			&:hover:not(:disabled, .btn-disabled, [aria-disabled='true']) {
+				--btn-shadow: 0 20px 60px rgb(0 0 0 / 0.15);
+				translate: 0 -4px;
+
+				&::before {
+					translate: 0 0;
+				}
+
+				/* Small buttons sit in dense rows, so they lift less. */
+				&.btn-sm {
+					--btn-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+					translate: 0 -2px;
+				}
+			}
+		}
+	}
+
+	/* Disabled or busy: the button's own colours at half opacity, never daisyUI's grey slab. */
+	.btn:is(:disabled, .btn-disabled, [aria-disabled='true']) {
+		--btn-bg: var(--btn-color, var(--color-base-100));
+		--btn-border: var(--btn-color, var(--color-base-300));
+		--btn-shadow: none;
+		background-color: var(--btn-bg);
+		color: var(--btn-fg);
+		opacity: 0.5;
+		cursor: not-allowed;
+
+		&:is(.btn-ghost, .btn-link) {
+			--btn-bg: #0000;
+			--btn-border: #0000;
+		}
+
+		/* A disabled <button> ignores clicks anyway, so it can take the pointer to show the cursor. */
+		&:disabled {
+			pointer-events: auto;
+		}
+
+		&.btn-neutral::before {
+			display: none;
+		}
+	}
+
+	/* The base layer already makes transitions instant; a hovered button should not jump up either. */
+	@media (prefers-reduced-motion: reduce) {
+		.btn {
+			translate: none !important;
+		}
+	}
+
+	:is(.input, .select, .textarea) {
+		--input-color: var(--color-base-300);
+		--font-size: 0.9375rem;
+		box-shadow: 0 0 0 0 rgb(0 0 0 / 0);
+		transition:
+			border-color 0.3s var(--ease-out-expo),
+			box-shadow 0.3s var(--ease-out-expo);
+
+		/* At 16px, iOS does not zoom in when a field takes focus. */
+		@media (width < 48rem) {
+			--font-size: 1rem;
+		}
+
+		@media (hover: hover) {
+			&:hover {
+				--input-color: var(--color-neutral-400);
+			}
+		}
+
+		&:is(:focus, :focus-within) {
+			--input-color: var(--color-base-content);
+			outline: none;
+			box-shadow: 0 0 0 4px rgb(0 0 0 / 0.06);
+		}
+
+		&:is([aria-invalid='true'], :has([aria-invalid='true'])) {
+			--input-color: var(--color-error);
+		}
+	}
+
+	/* Amounts are typed, never stepped: no spinners. Here so it beats daisyUI's `appearance: none`. */
+	input[type='number'] {
+		appearance: textfield;
+
+		&::-webkit-inner-spin-button,
+		&::-webkit-outer-spin-button {
+			margin: 0;
+			appearance: none;
+		}
+	}
+
+	/* The native clear button of a search field, as a grey cross. */
+	input[type='search']::-webkit-search-cancel-button {
+		width: 1rem;
+		height: 1rem;
+		appearance: none;
+		background-color: var(--color-neutral-400);
+		mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' stroke='black' stroke-width='1.75' stroke-linecap='round'/%3E%3C/svg%3E")
+			center / contain no-repeat;
+		cursor: pointer;
+		transition: background-color 0.3s var(--ease-out-expo);
+
+		&:hover {
+			background-color: var(--color-base-content);
+		}
+	}
+}

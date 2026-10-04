@@ -1,0 +1,17 @@
+[package]
+name = "marketplace"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[features]
+# Decodes the types straight from the database: `SizeGroup` and `LossReason` as its enums, and
+# `Rules`, `Terms` and `PendingBid` as rows.
+sqlx = ["dep:sqlx"]
+
+[dependencies]
+serde.workspace = true
+sqlx = { workspace = true, optional = true, features = ["derive"] }
+
+[lints]
+workspace = true

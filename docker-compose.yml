@@ -1,0 +1,81 @@
+name: wepush
+
+x-backend: &backend
+  build: ./backend
+  image: wepush-backend
+  # An init process forwards SIGTERM, so `docker stop` is prompt even before the
+  # binaries install their signal handlers.
+  init: true
+  # Optional settings (see .env.example); unset ones take the defaults in the README.
+  env_file:
+    - path: .env
+      required: false
+  environment: &backend-env
+    DATABASE_URL: postgres://wepush:wepush@postgres:5432/wepush
+
+services:
+  postgres:
+    image: postgres:18-trixie
+    environment:
+      POSTGRES_USER: wepush
+      POSTGRES_PASSWORD: wepush
+      POSTGRES_DB: wepush
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      # Postgres 18 images keep data under a versioned directory inside /var/lib/postgresql.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wepush -d wepush"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  migrate:
+    <<: *backend
+    command: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Demo data, only with `--profile seed`. Runs once; leaves a database with data alone.
+  seed:
+    <<: *backend
+    command: ["seed", "--if-empty"]
+    profiles: [seed]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  api:
+    <<: *backend
+    command: ["api"]
+    environment:
+      <<: *backend-env
+      # Demo routes under /api/dev, for the frontend's Debug menu (bot bids, early close).
+      DEV_TOOLS: ${DEV_TOOLS:-true}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *backend
+    command: ["worker"]
+    environment:
+      <<: *backend-env
+      # Short in the demo, so a campaign the Debug menu moves to close in 10 seconds closes on time.
+      WORKER_REFRESH_SECS: ${WORKER_REFRESH_SECS:-5}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build: ./frontend
+    image: wepush-web
+    ports:
+      - "${WEB_HOST_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
