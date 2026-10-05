@@ -21,7 +21,7 @@ services:
       POSTGRES_PASSWORD: wepush
       POSTGRES_DB: wepush
     ports:
-      - "${POSTGRES_HOST_PORT:-5432}:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       # Postgres 18 images keep data under a versioned directory inside /var/lib/postgresql.
       - postgres-data:/var/lib/postgresql

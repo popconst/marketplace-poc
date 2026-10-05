@@ -1,19 +1,13 @@
-# syntax=docker/dockerfile:1
-
 FROM rust:1.98.1-slim-trixie AS builder
 WORKDIR /src
 COPY . .
-# target/ lives in a cache mount, so the binaries must be copied out in the same step. The seeder
-# is for the demo's opt-in `seed` service.
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/src/target \
-    cargo build --release --locked --bin api --bin worker --bin migrate --bin seed \
-    && cp target/release/api target/release/worker target/release/migrate target/release/seed \
-        /usr/local/bin/
+# Plain RUN steps only, so the image builds with or without BuildKit. The seeder is for the demo's
+# opt-in `seed` service.
+RUN cargo build --release --locked --bin api --bin worker --bin migrate --bin seed
 
 FROM debian:trixie-slim
-COPY --from=builder /usr/local/bin/api /usr/local/bin/worker /usr/local/bin/migrate \
-    /usr/local/bin/seed /usr/local/bin/
+COPY --from=builder /src/target/release/api /src/target/release/worker \
+    /src/target/release/migrate /src/target/release/seed /usr/local/bin/
 # Numeric so Kubernetes `runAsNonRoot` can verify it without a passwd entry.
 USER 10001:10001
 EXPOSE 3000

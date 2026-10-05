@@ -4,19 +4,19 @@ Advertisers create campaigns. Creators see the campaigns that fit them and bid. 
 
 ## Run it
 
-You need Docker with Compose.
+You only need Docker (Docker Desktop, or any Docker with Compose). From the repo folder:
 
 ```sh
-docker compose --profile seed up --build
+./start.sh
 ```
 
-Then open http://localhost:8080. There's no login. You pick an advertiser or a creator account to act as.
+It runs `docker compose --profile seed up --build`, or `docker-compose` if that's what you have. The first start compiles the Rust backend, which takes a few minutes. Then open http://localhost:8080. There's no login. You pick an advertiser or a creator account to act as. If port 8080 is taken, start it with `WEB_HOST_PORT=8090 ./start.sh` instead.
 
 The `seed` profile fills an empty database with demo data once the migrations have run: 25 advertisers, each with one open campaign and one or two drafts, and 50,000 creators with about 74,000 TikTok and Instagram accounts. If the database already has data, it's left alone, so restarting keeps your changes.
 
 Without `--profile seed` you get an empty marketplace. The API can't create advertisers or creators, so that's only useful if you bring your own data.
 
-`docker compose down -v` deletes everything. Ports and settings go in `.env` (see `.env.example` and [Configuration](#configuration)).
+`docker compose down -v` (or `docker-compose down -v`) deletes everything. Ports and settings go in `.env` (see `.env.example` and [Configuration](#configuration)).
 
 Compose also turns on the demo tools (`DEV_TOOLS`). You get a Debug menu that makes bots bid and moves a campaign's deadline to 10 seconds from now, and you can publish a campaign that closes in 5 minutes.
 
@@ -45,6 +45,7 @@ The frontend only talks to the API. The API and the worker never talk to each ot
 | `backend/migrations/` | SQL migrations, built into the binaries |
 | `frontend/` | SvelteKit single-page app (Svelte 5, Tailwind CSS 4, daisyUI 5), served by nginx, which also proxies `/api` |
 | `docker-compose.yml` | `postgres`, `migrate` (runs once), `api`, `worker`, `web`, and `seed` (only with the `seed` profile, runs once) |
+| `start.sh` | Builds and starts everything with the demo data, with whichever Compose is installed |
 
 ## How matching, pricing and closing work
 
@@ -189,7 +190,7 @@ Each binary reads its settings at startup, from environment variables or the mat
 | `WORKER_REFRESH_SECS` | 30 (Compose: 5) | How often the worker reloads the coming deadlines. It still closes each campaign right at its deadline. A deadline moved closer, as "Close in 10 seconds" does, is picked up on the next reload |
 | `CLOSE_MAX_ATTEMPTS` | 5 | Failed attempts to close a campaign before the worker marks it `failed` and stops trying |
 | `RUST_LOG` | `info` | Log filter, in the syntax of tracing's `EnvFilter` |
-| `POSTGRES_HOST_PORT`, `WEB_HOST_PORT` | 5432, 8080 | Compose only: the host ports for Postgres and the web app |
+| `POSTGRES_HOST_PORT`, `WEB_HOST_PORT` | 5433, 8080 | Compose only: the host ports for Postgres and the web app |
 
 At startup the binaries check that:
 
@@ -220,7 +221,7 @@ Here's how I'd run it.
 
 ```sh
 docker compose up -d postgres
-export DATABASE_URL=postgres://wepush:wepush@localhost:5432/wepush
+export DATABASE_URL=postgres://wepush:wepush@localhost:5433/wepush
 
 cd backend
 cargo run --bin migrate
