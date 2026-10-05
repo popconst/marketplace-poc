@@ -10,7 +10,7 @@ You only need Docker (Docker Desktop, or any Docker with Compose). From the repo
 ./start.sh
 ```
 
-It runs `docker compose --profile seed up --build`, or `docker-compose` if that's what you have. The first start compiles the Rust backend, which takes a few minutes. Then open http://localhost:8080. There's no login. You pick an advertiser or a creator account to act as. If port 8080 is taken, start it with `WEB_HOST_PORT=8090 ./start.sh` instead.
+It runs `docker compose --profile seed up --build`, or `docker-compose` if that's what you have. The first start compiles the Rust backend, which takes a few minutes. Then open http://localhost:8080. There's no login. You pick an advertiser or a creator account to act as. If something else already uses port 8080, `start.sh` takes the next free port, prints the address and keeps it in `.env` for the next runs.
 
 The `seed` profile fills an empty database with demo data once the migrations have run: 25 advertisers, each with one open campaign and one or two drafts, and 50,000 creators with about 74,000 TikTok and Instagram accounts. If the database already has data, it's left alone, so restarting keeps your changes.
 
@@ -45,7 +45,7 @@ The frontend only talks to the API. The API and the worker never talk to each ot
 | `backend/migrations/` | SQL migrations, built into the binaries |
 | `frontend/` | SvelteKit single-page app (Svelte 5, Tailwind CSS 4, daisyUI 5), served by nginx, which also proxies `/api` |
 | `docker-compose.yml` | `postgres`, `migrate` (runs once), `api`, `worker`, `web`, and `seed` (only with the `seed` profile, runs once) |
-| `start.sh` | Builds and starts everything with the demo data, with whichever Compose is installed |
+| `start.sh` | Builds and starts everything with the demo data, with whichever Compose is installed, on free ports |
 
 ## How matching, pricing and closing work
 
@@ -190,7 +190,7 @@ Each binary reads its settings at startup, from environment variables or the mat
 | `WORKER_REFRESH_SECS` | 30 (Compose: 5) | How often the worker reloads the coming deadlines. It still closes each campaign right at its deadline. A deadline moved closer, as "Close in 10 seconds" does, is picked up on the next reload |
 | `CLOSE_MAX_ATTEMPTS` | 5 | Failed attempts to close a campaign before the worker marks it `failed` and stops trying |
 | `RUST_LOG` | `info` | Log filter, in the syntax of tracing's `EnvFilter` |
-| `POSTGRES_HOST_PORT`, `WEB_HOST_PORT` | 5433, 8080 | Compose only: the host ports for Postgres and the web app |
+| `POSTGRES_HOST_PORT`, `WEB_HOST_PORT` | 5433, 8080 | Compose only: the host ports for Postgres and the web app. `start.sh` moves them to the next free port if these are taken |
 
 At startup the binaries check that:
 
